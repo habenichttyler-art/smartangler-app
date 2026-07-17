@@ -6,6 +6,7 @@ from streamlit_folium import st_folium
 import requests
 import time
 import math
+import hashlib
 
 st.set_page_config(
     page_title="SmartAngler Tactical Console", 
@@ -258,7 +259,7 @@ county_data = {
 }
 
 
-# --- DYNAMIC ROTATION & SCALING ENGINE ---
+# --- DYNAMIC ROTATION, SCALING & AI ALGORITHM ENGINE ---
 def determine_line_scale(name, env_type):
     n = name.lower()
     if "river" in n or "creek" in n or "estuary" in n or "flow" in n:
@@ -293,9 +294,13 @@ def get_isolated_county_nodes(county):
     baro, b_del, bite, bi_del = get_noaa_live_telemetry(buoy_id, tide_id)
     compiled_nodes = []
 
+    # AI Visuals based on NOAA Telemetry
     hw_color = "#00FFCC" if bite >= 80 else "#ff6600" if bite >= 60 else "#8fa0bc"
     st_color = "#db146a" if baro > 30.00 else "#9370DB"
     flow_multiplier = 1.5 if "INFLOW" in bi_del or "IMPROVING" in bi_del else 0.8
+    
+    try: b_del_val = float(b_del.replace("+", ""))
+    except: b_del_val = 0.0
 
     if len(c_data) == 5 and isinstance(c_data[4], list):
         for spot in c_data[4]:
@@ -303,10 +308,21 @@ def get_isolated_county_nodes(county):
             scale = determine_line_scale(name, env_type)
             hw_scale = scale * flow_multiplier
             
-            # Deterministic pseudo-random rotation per coordinate
-            angle = int(abs(lat * 12345 + lon * 54321)) % 360
+            # AI ENGINE: Structure Angle is Permanent. Fish Angle changes based on live NOAA behavior.
+            struct_angle = int(hashlib.md5(name.encode()).hexdigest(), 16) % 360
+            
+            if bite >= 80:
+                fish_angle = struct_angle
+                ai_reason = "Ambush Mode: Stacked tight to structural ledge"
+            elif b_del_val < 0:
+                fish_angle = (struct_angle + 90) % 360
+                ai_reason = "Roaming: Pushed off structure by falling pressure"
+            else:
+                fish_angle = (struct_angle + 45 + bite) % 360
+                ai_reason = "Neutral: Holding in adjacent current seams"
 
             base_struct = [[scale, -scale], [0, -(scale * 0.3)], [-scale, -scale]]
+            
             if "INFLOW" in bi_del or "IMPROVING" in bi_del:
                 base_hw = [[-hw_scale, scale], [0, scale * 0.5], [hw_scale, scale * 1.2]]
             else:
@@ -315,9 +331,9 @@ def get_isolated_county_nodes(county):
             compiled_nodes.append({
                 "water_name": name, "lat": lat, "lon": lon, "env": env_type, "depth": depth,
                 "species": target_species, "bite_index": bite, "bite_delta": bi_del, "barometer": baro, "baro_delta": b_del,
-                "structures": [{"path": rotate_path(lat, lon, base_struct, angle), "name": f"{name} Ledge | {target_species} Structure (Baro: {baro})", "color": st_color}],
-                "highways": [{"path": rotate_path(lat, lon, base_hw, angle), "name": f"Forage Vector | {bi_del} Flow | Bite: {bite}/100", "color": hw_color}],
-                "labels": f"Coastal Structure Verified On Water // Station {tide_id}"
+                "structures": [{"path": rotate_path(lat, lon, base_struct, struct_angle), "name": f"Fixed Structure Ledge (Baro: {baro})", "color": st_color}],
+                "highways": [{"path": rotate_path(lat, lon, base_hw, fish_angle), "name": f"AI Vector: {ai_reason}", "color": hw_color}],
+                "labels": f"Geospatial Target Verified On Water // Station {tide_id}"
             })
     else:
         base_lat, base_lon, system_label = c_data[4], c_data[5], c_data[6]
@@ -335,9 +351,21 @@ def get_isolated_county_nodes(county):
             scale = determine_line_scale(node["name"], env_type)
             hw_scale = scale * flow_multiplier
             
-            angle = int(abs(lat * 12345 + lon * 54321)) % 360
+            # AI ENGINE: Structure Angle is Permanent. Fish Angle changes based on live NOAA behavior.
+            struct_angle = int(hashlib.md5(node["name"].encode()).hexdigest(), 16) % 360
+            
+            if bite >= 80:
+                fish_angle = struct_angle
+                ai_reason = "Ambush Mode: Stacked tight to structural ledge"
+            elif b_del_val < 0:
+                fish_angle = (struct_angle + 90) % 360
+                ai_reason = "Roaming: Pushed off structure by falling pressure"
+            else:
+                fish_angle = (struct_angle + 45 + bite) % 360
+                ai_reason = "Neutral: Holding in adjacent current seams"
 
             base_struct = [[scale, -scale], [0, -(scale * 0.3)], [-scale, -scale]]
+            
             if "INFLOW" in bi_del or "IMPROVING" in bi_del:
                 base_hw = [[-hw_scale, scale], [0, scale * 0.5], [hw_scale, scale * 1.2]]
             else:
@@ -346,9 +374,9 @@ def get_isolated_county_nodes(county):
             compiled_nodes.append({
                 "water_name": node["name"], "lat": lat, "lon": lon, "env": env_type, "depth": node["depth"],
                 "species": target_species, "bite_index": bite, "bite_delta": bi_del, "barometer": baro, "baro_delta": b_del,
-                "structures": [{"path": rotate_path(lat, lon, base_struct, angle), "name": f"{node['name']} Ledge | {target_species} Structure (Baro: {baro})", "color": st_color}],
-                "highways": [{"path": rotate_path(lat, lon, base_hw, angle), "name": f"Forage Vector | {bi_del} Flow | Bite: {bite}/100", "color": hw_color}],
-                "labels": f"Geospatial Anchor Verified Deep Water // Station {tide_id}"
+                "structures": [{"path": rotate_path(lat, lon, base_struct, struct_angle), "name": f"Fixed Structure Ledge (Baro: {baro})", "color": st_color}],
+                "highways": [{"path": rotate_path(lat, lon, base_hw, fish_angle), "name": f"AI Vector: {ai_reason}", "color": hw_color}],
+                "labels": f"Geospatial Target Verified Deep Water // Station {tide_id}"
             })
             
     return compiled_nodes

@@ -257,23 +257,23 @@ county_data = {
 }
 
 
-# --- DYNAMIC LINE SCALING ENGINE ---
+# --- DYNAMIC LINE SCALING & NOAA INTEGRATION ENGINE ---
 def determine_line_scale(name, env_type):
     n = name.lower()
     if "river" in n or "creek" in n or "estuary" in n or "flow" in n:
-        return 0.00015  # Very short: keeps lines inside narrow rivers
+        return 0.00015  
     elif "pier" in n:
-        return 0.00020  # Short: focuses strictly off the end of the pier
+        return 0.00020  
     elif "bridge" in n or "causeway" in n or "trestle" in n:
-        return 0.00150  # Long: sweeps massively across bridge spans
+        return 0.00150  
     elif "inlet" in n or "pass" in n or "jetties" in n:
-        return 0.00100  # Medium-Long: tracks tidal movement through an inlet
+        return 0.00100  
     elif env_type == "Riverine System":
-        return 0.00020  # Tight default for inland river basins
+        return 0.00020  
     elif env_type == "Inland Freshwater System":
-        return 0.00080  # Medium-Wide for broad lake centers
+        return 0.00080  
     else:
-        return 0.00100  # Default wide setup for open oceans and bays
+        return 0.00100  
 
 def get_isolated_county_nodes(county):
     c_data = county_data[county]
@@ -281,15 +281,41 @@ def get_isolated_county_nodes(county):
     baro, b_del, bite, bi_del = get_noaa_live_telemetry(buoy_id, tide_id)
     compiled_nodes = []
 
+    hw_color = "#00FFCC" if bite >= 80 else "#ff6600" if bite >= 60 else "#8fa0bc"
+    st_color = "#db146a" if baro > 30.00 else "#9370DB"
+    flow_multiplier = 1.5 if "INFLOW" in bi_del or "IMPROVING" in bi_del else 0.8
+
     if len(c_data) == 5 and isinstance(c_data[4], list):
         for spot in c_data[4]:
             lat, lon, name, depth = spot[0], spot[1], spot[2], spot[3]
             scale = determine_line_scale(name, env_type)
+            hw_scale = scale * flow_multiplier
+
+            # ELIMINATE THE 'X': Draw bent 3-point topographic contour arcs that trace around the center
+            path_struct = [
+                [lat + scale, lon - scale],
+                [lat, lon - (scale * 0.3)],
+                [lat - scale, lon - scale]
+            ]
+            
+            if "INFLOW" in bi_del:
+                path_hw = [
+                    [lat - hw_scale, lon + scale],
+                    [lat, lon + (scale * 0.5)],
+                    [lat + hw_scale, lon + (scale * 1.2)]
+                ]
+            else:
+                path_hw = [
+                    [lat + hw_scale, lon + scale],
+                    [lat, lon + (scale * 0.5)],
+                    [lat - hw_scale, lon + (scale * 1.2)]
+                ]
+
             compiled_nodes.append({
                 "water_name": name, "lat": lat, "lon": lon, "env": env_type, "depth": depth,
                 "species": target_species, "bite_index": bite, "bite_delta": bi_del, "barometer": baro, "baro_delta": b_del,
-                "structures": [{"path": [[lat - scale, lon - scale], [lat + scale, lon + scale]], "name": "Submerged Structural Edge"}],
-                "highways": [{"path": [[lat - scale, lon + scale], [lat + scale, lon - scale]], "name": "Forage Migration Seam"}],
+                "structures": [{"path": path_struct, "name": f"{name} Ledge | {target_species} Structure (Baro: {baro})", "color": st_color}],
+                "highways": [{"path": path_hw, "name": f"Forage Vector | {bi_del} Flow | Bite: {bite}/100", "color": hw_color}],
                 "labels": f"Coastal Structure Verified On Water // Station {tide_id}"
             })
     else:
@@ -306,11 +332,32 @@ def get_isolated_county_nodes(county):
             lat = base_lat + node["lat_off"]
             lon = base_lon + node["lon_off"]
             scale = determine_line_scale(node["name"], env_type)
+            hw_scale = scale * flow_multiplier
+
+            # ELIMINATE THE 'X': Draw bent 3-point topographic contour arcs that trace around the center
+            path_struct = [
+                [lat + scale, lon - scale],
+                [lat, lon - (scale * 0.3)],
+                [lat - scale, lon - scale]
+            ]
+            if "INFLOW" in bi_del:
+                path_hw = [
+                    [lat - hw_scale, lon + scale],
+                    [lat, lon + (scale * 0.5)],
+                    [lat + hw_scale, lon + (scale * 1.2)]
+                ]
+            else:
+                path_hw = [
+                    [lat + hw_scale, lon + scale],
+                    [lat, lon + (scale * 0.5)],
+                    [lat - hw_scale, lon + (scale * 1.2)]
+                ]
+
             compiled_nodes.append({
                 "water_name": node["name"], "lat": lat, "lon": lon, "env": env_type, "depth": node["depth"],
                 "species": target_species, "bite_index": bite, "bite_delta": bi_del, "barometer": baro, "baro_delta": b_del,
-                "structures": [{"path": [[lat - scale, lon - scale], [lat + scale, lon + scale]], "name": "Submerged Structural Edge"}],
-                "highways": [{"path": [[lat - scale, lon + scale], [lat + scale, lon - scale]], "name": "Forage Migration Seam"}],
+                "structures": [{"path": path_struct, "name": f"{node['name']} Ledge | {target_species} Structure (Baro: {baro})", "color": st_color}],
+                "highways": [{"path": path_hw, "name": f"Forage Vector | {bi_del} Flow | Bite: {bite}/100", "color": hw_color}],
                 "labels": f"Geospatial Anchor Verified Deep Water // Station {tide_id}"
             })
             
@@ -341,15 +388,15 @@ with col_map:
     
     m = folium.Map(
         location=[target_segment["lat"], target_segment["lon"]], 
-        zoom_start=15, 
+        zoom_start=16, 
         tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         attr='Esri World Imagery'
     )
     
     for s in target_segment.get("structures", []):
-        folium.PolyLine(locations=s["path"], color="#db146a", weight=5, tooltip=s["name"]).add_to(m)
+        folium.PolyLine(locations=s["path"], color=s["color"], weight=5, tooltip=s["name"]).add_to(m)
     for h in target_segment.get("highways", []):
-        folium.PolyLine(locations=h["path"], color="#ff6600", weight=5, tooltip=h["name"]).add_to(m)
+        folium.PolyLine(locations=h["path"], color=h["color"], weight=5, tooltip=h["name"]).add_to(m)
         
     folium.CircleMarker(
         location=[target_segment["lat"], target_segment["lon"]],

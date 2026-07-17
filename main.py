@@ -5,6 +5,7 @@ import folium
 from streamlit_folium import st_folium
 import requests
 import time
+import math
 
 st.set_page_config(
     page_title="SmartAngler Tactical Console", 
@@ -257,7 +258,7 @@ county_data = {
 }
 
 
-# --- DYNAMIC LINE SCALING & NOAA INTEGRATION ENGINE ---
+# --- DYNAMIC ROTATION & SCALING ENGINE ---
 def determine_line_scale(name, env_type):
     n = name.lower()
     if "river" in n or "creek" in n or "estuary" in n or "flow" in n:
@@ -275,6 +276,17 @@ def determine_line_scale(name, env_type):
     else:
         return 0.00100  
 
+def rotate_path(center_lat, center_lon, offsets, angle_deg):
+    rad = math.radians(angle_deg)
+    cos_a = math.cos(rad)
+    sin_a = math.sin(rad)
+    path = []
+    for d_lat, d_lon in offsets:
+        r_lat = d_lat * cos_a - d_lon * sin_a
+        r_lon = d_lat * sin_a + d_lon * cos_a
+        path.append([center_lat + r_lat, center_lon + r_lon])
+    return path
+
 def get_isolated_county_nodes(county):
     c_data = county_data[county]
     tide_id, buoy_id, env_type, target_species = c_data[0], c_data[1], c_data[2], c_data[3]
@@ -290,32 +302,21 @@ def get_isolated_county_nodes(county):
             lat, lon, name, depth = spot[0], spot[1], spot[2], spot[3]
             scale = determine_line_scale(name, env_type)
             hw_scale = scale * flow_multiplier
-
-            # ELIMINATE THE 'X': Draw bent 3-point topographic contour arcs that trace around the center
-            path_struct = [
-                [lat + scale, lon - scale],
-                [lat, lon - (scale * 0.3)],
-                [lat - scale, lon - scale]
-            ]
             
-            if "INFLOW" in bi_del:
-                path_hw = [
-                    [lat - hw_scale, lon + scale],
-                    [lat, lon + (scale * 0.5)],
-                    [lat + hw_scale, lon + (scale * 1.2)]
-                ]
+            # Deterministic pseudo-random rotation per coordinate
+            angle = int(abs(lat * 12345 + lon * 54321)) % 360
+
+            base_struct = [[scale, -scale], [0, -(scale * 0.3)], [-scale, -scale]]
+            if "INFLOW" in bi_del or "IMPROVING" in bi_del:
+                base_hw = [[-hw_scale, scale], [0, scale * 0.5], [hw_scale, scale * 1.2]]
             else:
-                path_hw = [
-                    [lat + hw_scale, lon + scale],
-                    [lat, lon + (scale * 0.5)],
-                    [lat - hw_scale, lon + (scale * 1.2)]
-                ]
+                base_hw = [[hw_scale, scale], [0, scale * 0.5], [-hw_scale, scale * 1.2]]
 
             compiled_nodes.append({
                 "water_name": name, "lat": lat, "lon": lon, "env": env_type, "depth": depth,
                 "species": target_species, "bite_index": bite, "bite_delta": bi_del, "barometer": baro, "baro_delta": b_del,
-                "structures": [{"path": path_struct, "name": f"{name} Ledge | {target_species} Structure (Baro: {baro})", "color": st_color}],
-                "highways": [{"path": path_hw, "name": f"Forage Vector | {bi_del} Flow | Bite: {bite}/100", "color": hw_color}],
+                "structures": [{"path": rotate_path(lat, lon, base_struct, angle), "name": f"{name} Ledge | {target_species} Structure (Baro: {baro})", "color": st_color}],
+                "highways": [{"path": rotate_path(lat, lon, base_hw, angle), "name": f"Forage Vector | {bi_del} Flow | Bite: {bite}/100", "color": hw_color}],
                 "labels": f"Coastal Structure Verified On Water // Station {tide_id}"
             })
     else:
@@ -333,31 +334,20 @@ def get_isolated_county_nodes(county):
             lon = base_lon + node["lon_off"]
             scale = determine_line_scale(node["name"], env_type)
             hw_scale = scale * flow_multiplier
+            
+            angle = int(abs(lat * 12345 + lon * 54321)) % 360
 
-            # ELIMINATE THE 'X': Draw bent 3-point topographic contour arcs that trace around the center
-            path_struct = [
-                [lat + scale, lon - scale],
-                [lat, lon - (scale * 0.3)],
-                [lat - scale, lon - scale]
-            ]
-            if "INFLOW" in bi_del:
-                path_hw = [
-                    [lat - hw_scale, lon + scale],
-                    [lat, lon + (scale * 0.5)],
-                    [lat + hw_scale, lon + (scale * 1.2)]
-                ]
+            base_struct = [[scale, -scale], [0, -(scale * 0.3)], [-scale, -scale]]
+            if "INFLOW" in bi_del or "IMPROVING" in bi_del:
+                base_hw = [[-hw_scale, scale], [0, scale * 0.5], [hw_scale, scale * 1.2]]
             else:
-                path_hw = [
-                    [lat + hw_scale, lon + scale],
-                    [lat, lon + (scale * 0.5)],
-                    [lat - hw_scale, lon + (scale * 1.2)]
-                ]
+                base_hw = [[hw_scale, scale], [0, scale * 0.5], [-hw_scale, scale * 1.2]]
 
             compiled_nodes.append({
                 "water_name": node["name"], "lat": lat, "lon": lon, "env": env_type, "depth": node["depth"],
                 "species": target_species, "bite_index": bite, "bite_delta": bi_del, "barometer": baro, "baro_delta": b_del,
-                "structures": [{"path": path_struct, "name": f"{node['name']} Ledge | {target_species} Structure (Baro: {baro})", "color": st_color}],
-                "highways": [{"path": path_hw, "name": f"Forage Vector | {bi_del} Flow | Bite: {bite}/100", "color": hw_color}],
+                "structures": [{"path": rotate_path(lat, lon, base_struct, angle), "name": f"{node['name']} Ledge | {target_species} Structure (Baro: {baro})", "color": st_color}],
+                "highways": [{"path": rotate_path(lat, lon, base_hw, angle), "name": f"Forage Vector | {bi_del} Flow | Bite: {bite}/100", "color": hw_color}],
                 "labels": f"Geospatial Anchor Verified Deep Water // Station {tide_id}"
             })
             

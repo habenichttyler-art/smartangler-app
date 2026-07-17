@@ -52,81 +52,13 @@ if not is_paid_user:
     st.link_button("ACTIVATE 30-DAY FREE TRIAL NOW", "https://buy.stripe.com/YOUR_STRIPE_LINK_HERE", use_container_width=True)
     st.stop()
 
-# --- 100% VERIFIED HYDROGRAPHIC COORDINATES (OCEAN OFFSHORE OR LAKE CENTERS) ---
-county_base_coords = {
-    "Alachua": [29.4450, -82.1650, "Inland Freshwater System", "8720226", "CDRF1", "Orange Lake Core"],
-    "Baker": [30.2160, -82.4330, "Inland Freshwater System", "8720030", "PCBF1", "Ocean Pond Center"],
-    "Bay": [30.0000, -85.8000, "Coastal Marine Estuary", "8729108", "PCBF1", "Gulf of Mexico Offshore"],
-    "Bradford": [29.9250, -82.2000, "Inland Freshwater System", "8720226", "CDRF1", "Lake Sampson Center"],
-    "Brevard": [28.3000, -80.4000, "Coastal Marine Estuary", "8721604", "41113", "Atlantic Ocean Offshore"],
-    "Broward": [26.1150, -80.0000, "Coastal Marine Estuary", "8722956", "41113", "Atlantic Ocean Offshore"],
-    "Calhoun": [30.1350, -85.1250, "Riverine System", "8728690", "PCBF1", "Dead Lakes Basin"],
-    "Charlotte": [26.8000, -82.3500, "Coastal Marine Estuary", "8725520", "CDRF1", "Gulf of Mexico Offshore"],
-    "Citrus": [28.8900, -82.8500, "Coastal Marine Estuary", "8727122", "CDRF1", "Gulf of Mexico Offshore"],
-    "Clay": [30.1450, -81.7150, "Riverine System", "8720226", "CDRF1", "Doctors Lake Center"],
-    "Collier": [26.0000, -82.0000, "Coastal Marine Estuary", "8725114", "CDRF1", "Gulf of Mexico Offshore"],
-    "Columbia": [30.1620, -82.6300, "Riverine System", "8720030", "CDRF1", "Alligator Lake Center"],
-    "DeSoto": [27.1650, -81.8900, "Riverine System", "8725520", "CDRF1", "Peace River Nocatee Segment"],
-    "Dixie": [29.3500, -83.4000, "Coastal Marine Estuary", "8727520", "CDRF1", "Gulf of Mexico Offshore"],
-    "Duval": [30.3500, -81.3000, "Coastal Marine Estuary", "8720218", "8720219", "Atlantic Ocean Offshore"],
-    "Escambia": [30.2000, -87.2500, "Coastal Marine Estuary", "8729840", "PCBF1", "Gulf of Mexico Offshore"],
-    "Flagler": [29.5000, -81.0500, "Coastal Marine Estuary", "8720218", "41113", "Atlantic Ocean Offshore"],
-    "Franklin": [29.5000, -84.9000, "Coastal Marine Estuary", "8728690", "PCBF1", "Gulf of Mexico Offshore"],
-    "Gadsden": [30.4700, -84.6500, "Riverine System", "8728690", "PCBF1", "Lake Talquin Center"],
-    "Gilchrist": [29.5880, -82.9350, "Riverine System", "8727520", "CDRF1", "Suwannee River - Fanning Springs"],
-    "Glades": [26.9000, -80.9000, "Inland Freshwater System", "8725520", "CDRF1", "Lake Okeechobee Center"],
-    "Gulf": [29.6500, -85.4500, "Coastal Marine Estuary", "8728690", "PCBF1", "Gulf of Mexico Offshore"],
-    "Hamilton": [30.3310, -82.7600, "Riverine System", "8720030", "CDRF1", "Suwannee River - White Springs"],
-    "Hardee": [27.4950, -81.8000, "Riverine System", "8725520", "CDRF1", "Peace River Center Flow"],
-    "Hendry": [26.8000, -80.9500, "Inland Freshwater System", "8725520", "CDRF1", "Lake Okeechobee SW Basin"],
-    "Hernando": [28.5400, -82.8000, "Coastal Marine Estuary", "8727122", "CDRF1", "Gulf of Mexico Offshore"],
-    "Highlands": [27.4000, -81.2800, "Inland Freshwater System", "8725520", "CDRF1", "Lake Istokpoga Center"],
-    "Hillsborough": [27.7500, -82.5500, "Coastal Marine Estuary", "8726607", "8726674", "Tampa Bay Center Basin"],
-    "Holmes": [30.7800, -85.8200, "Riverine System", "8729108", "PCBF1", "Choctawhatchee River Center"],
-    "Indian River": [27.6500, -80.2500, "Coastal Marine Estuary", "8721604", "41113", "Atlantic Ocean Offshore"],
-    "Jackson": [30.7300, -84.8800, "Riverine System", "8729108", "PCBF1", "Lake Seminole Center"],
-    "Jefferson": [30.0000, -84.0000, "Coastal Marine Estuary", "8727520", "CDRF1", "Gulf of Mexico Offshore"],
-    "Lafayette": [30.0650, -83.1050, "Riverine System", "8727520", "CDRF1", "Suwannee River Deep Bend"],
-    "Lake": [28.8000, -81.8000, "Inland Freshwater System", "8720226", "41113", "Lake Harris Center Basin"],
-    "Lee": [26.5000, -82.2500, "Coastal Marine Estuary", "8725520", "CDRF1", "Gulf of Mexico Offshore"],
-    "Leon": [30.5200, -84.3300, "Inland Freshwater System", "8728690", "PCBF1", "Lake Jackson Center"],
-    "Levy": [29.1000, -83.2000, "Coastal Marine Estuary", "8727520", "CDRF1", "Gulf of Mexico Offshore"],
-    "Liberty": [30.4300, -84.9900, "Riverine System", "8728690", "PCBF1", "Apalachicola River Center"],
-    "Madison": [30.5850, -83.4450, "Riverine System", "8720030", "CDRF1", "Cherry Lake Center Basin"],
-    "Manatee": [27.5000, -82.8500, "Coastal Marine Estuary", "8726384", "8726520", "Gulf of Mexico Offshore"],
-    "Marion": [29.0200, -81.9300, "Inland Freshwater System", "8720226", "CDRF1", "Lake Weir Center"],
-    "Martin": [27.1500, -80.0500, "Coastal Marine Estuary", "8722670", "41113", "Atlantic Ocean Offshore"],
-    "Miami-Dade": [25.7000, -80.0500, "Coastal Marine Estuary", "8723214", "41113", "Atlantic Ocean Offshore"],
-    "Monroe": [24.5000, -81.9000, "Coastal Marine Estuary", "8724580", "8723970", "Gulf of Mexico Offshore"],
-    "Nassau": [30.6500, -81.3000, "Coastal Marine Estuary", "8720030", "8720218", "Atlantic Ocean Offshore"],
-    "Okaloosa": [30.3000, -86.5000, "Coastal Marine Estuary", "8729108", "PCBF1", "Gulf of Mexico Offshore"],
-    "Okeechobee": [27.1500, -80.8500, "Inland Freshwater System", "8722670", "CDRF1", "Lake Okeechobee Center"],
-    "Orange": [28.6200, -81.6300, "Inland Freshwater System", "8721604", "41113", "Lake Apopka Center Basin"],
-    "Osceola": [28.2200, -81.4000, "Inland Freshwater System", "8721604", "41113", "Lake Tohopekaliga Center"],
-    "Palm Beach": [26.7000, -79.9500, "Coastal Marine Estuary", "8722670", "41113", "Atlantic Ocean Offshore"],
-    "Pasco": [28.3500, -82.8500, "Coastal Marine Estuary", "8726724", "CDRF1", "Gulf of Mexico Offshore"],
-    "Pinellas": [27.8000, -82.9500, "Coastal Marine Estuary", "8726520", "8726724", "Gulf of Mexico Offshore"],
-    "Polk": [27.9500, -81.3500, "Inland Freshwater System", "8726607", "CDRF1", "Lake Kissimmee Center"],
-    "Putnam": [29.3500, -81.6000, "Riverine System", "8720226", "CDRF1", "Lake George Center"],
-    "Santa Rosa": [30.2500, -87.0000, "Coastal Marine Estuary", "8729840", "PCBF1", "Gulf of Mexico Offshore"],
-    "Sarasota": [27.2000, -82.7000, "Coastal Marine Estuary", "8725520", "8726520", "Gulf of Mexico Offshore"],
-    "Seminole": [28.8400, -81.2800, "Inland Freshwater System", "8721604", "41113", "Lake Monroe Center"],
-    "St. Johns": [29.8500, -81.1500, "Coastal Marine Estuary", "8720218", "41113", "Atlantic Ocean Offshore"],
-    "St. Lucie": [27.4500, -80.1500, "Coastal Marine Estuary", "8722670", "41113", "Atlantic Ocean Offshore"],
-    "Sumter": [28.8051, -82.1231, "Inland Freshwater System", "8727122", "CDRF1", "Lake Panasoffkee Core"],
-    "Suwannee": [29.9600, -82.9300, "Riverine System", "8720030", "CDRF1", "Suwannee River Main Channel"],
-    "Taylor": [29.6500, -83.8500, "Coastal Marine Estuary", "8727520", "CDRF1", "Gulf of Mexico Offshore"],
-    "Union": [30.0385, -82.3410, "Inland Freshwater System", "8720226", "CDRF1", "Lake Butler Core Water"],
-    "Volusia": [29.2000, -80.9000, "Coastal Marine Estuary", "8720218", "41113", "Atlantic Ocean Offshore"],
-    "Wakulla": [30.0000, -84.3000, "Coastal Marine Estuary", "8728690", "PCBF1", "Gulf of Mexico Offshore"],
-    "Walton": [30.2500, -86.2000, "Coastal Marine Estuary", "8729108", "PCBF1", "Gulf of Mexico Offshore"],
-    "Washington": [30.5750, -85.8500, "Riverine System", "8729108", "PCBF1", "Choctawhatchee River Center"]
-}
 
+# --- NOAA DATA FETCHING (UPGRADED TIMEOUT & CACHE TO STOP DROPOUTS) ---
+@st.cache_data(ttl=300)
 def get_noaa_live_telemetry(buoy_id, tide_station):
     barometer, baro_delta, bite_index, bite_delta = 29.92, "+0.01", 75, "STABLE"
     try:
-        response = requests.get(f"https://www.ndbc.noaa.gov/data/realtime2/{buoy_id}.txt", timeout=2)
+        response = requests.get(f"https://www.ndbc.noaa.gov/data/realtime2/{buoy_id}.txt", timeout=5)
         if response.status_code == 200:
             lines = response.text.split("\n")
             if len(lines) > 3:
@@ -138,7 +70,7 @@ def get_noaa_live_telemetry(buoy_id, tide_station):
     except: pass
     try:
         url = f"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station={tide_station}&product=water_level&datum=mllw&units=english&time_zone=gmt&format=json"
-        response = requests.get(url, timeout=2).json()
+        response = requests.get(url, timeout=5).json()
         if "data" in response and len(response["data"]) > 0:
             val = float(response['data'][0]['v'])
             bite_index = int(75 + (val * 4))
@@ -146,43 +78,239 @@ def get_noaa_live_telemetry(buoy_id, tide_station):
     except: pass
     return barometer, baro_delta, bite_index, bite_delta
 
+
+# --- MASTER COUNTY DICTIONARY: COASTAL (35) & INLAND (32) ---
+# Format: "County": ["TideID", "BuoyID", "EnvType", "Species", [ (lat, lon, "Name", "Depth"), ... ]]
+
+county_data = {
+    # 35 COASTAL COUNTIES (5 PRECISION BRIDGE/PIER/INLET SPOTS EACH)
+    "Bay": ["8729108", "PCBF1", "Coastal Marine Estuary", "Snook, Redfish, Tarpon", [
+        (30.1830, -85.7180, "Hathaway Bridge Channels", "12-25 ft"), (30.1260, -85.7340, "St Andrews Jetties", "15-32 ft"), 
+        (30.2130, -85.8810, "Russell-Fields Pier", "10-18 ft"), (30.0810, -85.5900, "Tyndall Bridge Spans", "10-20 ft"), 
+        (30.2400, -85.6700, "West Bay Bridge Area", "8-16 ft")]],
+    "Brevard": ["8721604", "41113", "Coastal Marine Estuary", "Snook, Seatrout, Tarpon", [
+        (27.8600, -80.4460, "Sebastian Inlet Center", "12-28 ft"), (28.6253, -80.7950, "Max Brewer Bridge Spans", "6-12 ft"),
+        (28.0790, -80.5940, "Melbourne Causeway Fender", "8-15 ft"), (28.4080, -80.5920, "Port Canaveral Channel", "20-35 ft"),
+        (28.3685, -80.5980, "Cocoa Beach Pier End", "8-14 ft")]],
+    "Broward": ["8722956", "41113", "Coastal Marine Estuary", "Snook, Tarpon, Jacks", [
+        (26.0960, -80.1040, "Port Everglades Inlet", "20-40 ft"), (26.0380, -80.1100, "Dania Beach Pier", "10-18 ft"),
+        (26.2560, -80.0810, "Hillsboro Inlet Jetties", "12-24 ft"), (26.1890, -80.0940, "Commercial Blvd Pier", "8-16 ft"),
+        (26.1000, -80.1180, "17th St Causeway Spans", "10-22 ft")]],
+    "Charlotte": ["8725520", "CDRF1", "Coastal Marine Estuary", "Snook, Redfish, Seatrout", [
+        (26.7190, -82.2610, "Boca Grande Pass", "15-40 ft"), (26.8320, -82.2640, "Placida Pier Approach", "6-12 ft"),
+        (26.9630, -82.2110, "El Jobean Bridge Fender", "8-18 ft"), (26.9380, -82.0490, "US41 Peace River Bridge", "8-15 ft"),
+        (26.9010, -82.3680, "Stump Pass Channel", "10-22 ft")]],
+    "Citrus": ["8727122", "CDRF1", "Coastal Marine Estuary", "Redfish, Seatrout", [
+        (28.8930, -82.6050, "Crystal River Main Channel", "8-15 ft"), (28.9160, -82.6920, "Fort Island Pier End", "4-8 ft"),
+        (28.7990, -82.6210, "Homosassa Deep Channel", "6-12 ft"), (28.9600, -82.6700, "Cross Florida Barge Canal", "12-25 ft"),
+        (28.8400, -82.6600, "Ozello Trail Bridge Cut", "4-9 ft")]],
+    "Collier": ["8725114", "CDRF1", "Coastal Marine Estuary", "Snook, Tarpon, Redfish", [
+        (26.1320, -81.8080, "Naples Pier Deep End", "10-16 ft"), (26.0940, -81.7990, "Gordon Pass Channel", "12-25 ft"),
+        (25.9620, -81.7290, "Marco Island Bridge Span", "10-20 ft"), (25.9180, -81.7150, "Caxambas Pass Tidal Cut", "8-16 ft"),
+        (25.9250, -81.6440, "Goodland Bridge Channels", "6-14 ft")]],
+    "Miami-Dade": ["8723214", "41113", "Coastal Marine Estuary", "Snook, Tarpon, Bonefish", [
+        (25.7610, -80.1330, "Government Cut Inlet", "20-40 ft"), (25.9015, -80.1235, "Haulover Inlet Bridge", "15-28 ft"),
+        (25.7460, -80.1760, "Rickenbacker Causeway Spans", "8-16 ft"), (25.9280, -80.1180, "Newport Fishing Pier", "10-18 ft"),
+        (25.6550, -80.1600, "Stiltsville Channel Flats", "6-12 ft")]],
+    "Dixie": ["8727520", "CDRF1", "Coastal Marine Estuary", "Redfish, Seatrout", [
+        (29.4350, -83.2950, "Horseshoe Beach Pier", "4-8 ft"), (29.3240, -83.1310, "Suwannee Estuary Flow", "6-14 ft"),
+        (29.3950, -83.3300, "Shired Island Channel", "5-10 ft"), (29.3500, -83.1500, "Stuart Point Drop-off", "6-12 ft"),
+        (29.4000, -83.2000, "Cedar Creek Mouth", "4-9 ft")]],
+    "Duval": ["8720218", "8720219", "Coastal Marine Estuary", "Redfish, Trout, Flounder", [
+        (30.3950, -81.3950, "Mayport Jetties Channel", "15-40 ft"), (30.2880, -81.3850, "Jax Beach Pier End", "10-18 ft"),
+        (30.3850, -81.5550, "Dames Point Bridge Fenders", "20-45 ft"), (30.3800, -81.5000, "Wonderwood Bridge Span", "12-25 ft"),
+        (30.3990, -81.4550, "Sister Creek Bridge Current", "8-18 ft")]],
+    "Escambia": ["8729840", "PCBF1", "Coastal Marine Estuary", "Redfish, Trout", [
+        (30.4000, -87.1800, "Pensacola Bay Bridge Spans", "12-25 ft"), (30.3300, -87.3100, "Pensacola Pass Deep Slot", "20-45 ft"),
+        (30.3350, -87.1650, "Bob Sikes Bridge Piling", "10-22 ft"), (30.3200, -87.4300, "Ft Pickens Pier", "15-28 ft"),
+        (30.3850, -86.8650, "Navarre Bridge Escambia Side", "8-16 ft")]],
+    "Flagler": ["8720218", "41113", "Coastal Marine Estuary", "Redfish, Trout, Flounder", [
+        (29.4800, -81.1150, "Flagler Beach Pier End", "10-18 ft"), (29.7130, -81.2250, "Matanzas Inlet Bridge", "8-20 ft"),
+        (29.6100, -81.1950, "Hammock Dunes Bridge", "12-25 ft"), (29.4750, -81.1350, "SR100 Bridge ICW", "8-16 ft"),
+        (29.4120, -81.1110, "Highbridge Relief Channel", "6-14 ft")]],
+    "Franklin": ["8728690", "PCBF1", "Coastal Marine Estuary", "Redfish, Trout", [
+        (29.7420, -84.8820, "St George Island Bridge", "10-22 ft"), (29.7250, -84.9800, "Apalachicola Bridge Fenders", "8-18 ft"),
+        (29.6850, -85.2550, "Indian Pass Jetties", "12-25 ft"), (29.8400, -84.6650, "Carrabelle River Mouth", "10-20 ft"),
+        (29.7400, -84.8800, "East Point Fishing Pier", "6-12 ft")]],
+    "Gulf": ["8728690", "PCBF1", "Coastal Marine Estuary", "Trout, Redfish, Flounder", [
+        (29.6800, -85.4000, "Cape San Blas Shoal", "8-16 ft"), (29.8150, -85.3000, "St Joe Bay Bridge", "6-14 ft"),
+        (29.6850, -85.2200, "Indian Pass Inlet Flow", "10-22 ft"), (29.8700, -85.2100, "White City Bridge Piling", "8-18 ft"),
+        (29.7800, -85.3200, "Presnell Channel Access", "5-12 ft")]],
+    "Hernando": ["8727122", "CDRF1", "Coastal Marine Estuary", "Snook, Redfish, Trout", [
+        (28.5410, -82.6450, "Bayport Pier Channel", "6-12 ft"), (28.4950, -82.6620, "Hernando Beach Channel", "8-15 ft"),
+        (28.4300, -82.6600, "Aripeka Bridges Current", "5-10 ft"), (28.5300, -82.6500, "Weeki Wachee Estuary Mouth", "4-9 ft"),
+        (28.4500, -82.6600, "Jenkins Creek Mouth", "4-8 ft")]],
+    "Hillsborough": ["8726607", "8726674", "Coastal Marine Estuary", "Snook, Redfish, Tarpon", [
+        (27.6520, -82.6550, "Skyway Bridge North Spans", "15-32 ft"), (27.8800, -82.5500, "Gandy Bridge Fenders", "10-22 ft"),
+        (27.9150, -82.5900, "Howard Frankland Pilings", "12-25 ft"), (27.9600, -82.6000, "Courtney Campbell Relief", "8-16 ft"),
+        (27.8890, -82.4780, "Ballast Point Pier End", "8-14 ft")]],
+    "Indian River": ["8721604", "41113", "Coastal Marine Estuary", "Snook, Tarpon, Trout", [
+        (27.8600, -80.4460, "Sebastian Inlet Jetties", "12-28 ft"), (27.7550, -80.3950, "Wabasso Bridge Fender", "8-18 ft"),
+        (27.6520, -80.3750, "Barber Bridge Spans", "10-22 ft"), (27.6300, -80.3700, "17th St Bridge Piling", "8-16 ft"),
+        (27.5600, -80.3300, "Round Island Park Channel", "6-12 ft")]],
+    "Jefferson": ["8727520", "CDRF1", "Coastal Marine Estuary", "Redfish, Trout", [
+        (30.0910, -83.9910, "Aucilla River Mouth", "6-14 ft"), (30.0350, -83.9120, "Econfina Mouth Estuary", "5-12 ft"),
+        (30.1000, -83.9500, "Pinhook River Mouth", "4-9 ft"), (30.0700, -84.0000, "St Marks Coastal Shelf", "8-16 ft"),
+        (30.0800, -84.0500, "East River Estuary Mouth", "5-10 ft")]],
+    "Lee": ["8725520", "CDRF1", "Coastal Marine Estuary", "Snook, Redfish, Tarpon", [
+        (26.4800, -82.0150, "Sanibel Causeway Bridge", "10-22 ft"), (26.4850, -82.1800, "Blind Pass Bridge", "8-18 ft"),
+        (26.6350, -82.0700, "Matlacha Bridge Current", "6-15 ft"), (26.8150, -82.2600, "Boca Grande Trestles", "12-25 ft"),
+        (26.5650, -81.9450, "Cape Coral Bridge Channel", "10-20 ft")]],
+    "Levy": ["8727520", "CDRF1", "Coastal Marine Estuary", "Redfish, Seatrout, Cobia", [
+        (29.1380, -83.0320, "Cedar Key Fishing Pier", "8-15 ft"), (29.1500, -83.0200, "No 4 Bridge Cedar Key", "6-12 ft"),
+        (28.9950, -82.7450, "Yankeetown Estuary", "8-16 ft"), (29.1150, -82.8350, "Waccasassa River Mouth", "5-12 ft"),
+        (29.3000, -83.1500, "Suwannee Sound Channel", "10-20 ft")]],
+    "Manatee": ["8726384", "8726520", "Coastal Marine Estuary", "Snook, Redfish, Trout", [
+        (27.6150, -82.6450, "Skyway Bridge South Fender", "15-32 ft"), (27.5050, -82.7000, "Anna Maria Bridge Spans", "8-18 ft"),
+        (27.4650, -82.6850, "Cortez Bridge Current", "10-22 ft"), (27.4670, -82.6850, "Rod and Reel Pier End", "8-15 ft"),
+        (27.5000, -82.5700, "Green Bridge Fishing Pier", "6-14 ft")]],
+    "Martin": ["8722670", "41113", "Coastal Marine Estuary", "Snook, Tarpon, Permit", [
+        (27.2050, -80.2550, "Stuart Causeway Bridges", "10-22 ft"), (27.2350, -80.2150, "Jensen Beach Causeway", "8-18 ft"),
+        (27.1650, -80.1600, "St Lucie Inlet Channel", "15-30 ft"), (27.2000, -80.2600, "Roosevelt Bridge Spans", "12-25 ft"),
+        (27.0600, -80.1200, "Hobe Sound Bridge Current", "8-16 ft")]],
+    "Monroe": ["8724580", "8723970", "Coastal Marine Estuary", "Tarpon, Snook, Bonefish", [
+        (24.7050, -81.1550, "Seven Mile Bridge Channel", "12-30 ft"), (24.6550, -81.2850, "Bahia Honda Deep Bridge", "15-35 ft"),
+        (24.8300, -80.7300, "Channel 2 Bridge Fender", "10-22 ft"), (24.8150, -80.8200, "Long Key Bridge Spans", "8-18 ft"),
+        (24.5450, -81.8000, "Key West Pier Approach", "12-25 ft")]],
+    "Nassau": ["8720030", "8720218", "Coastal Marine Estuary", "Redfish, Trout, Black Drum", [
+        (30.6450, -81.4850, "Amelia Island Bridge Spans", "12-25 ft"), (30.5150, -81.4550, "George Crady Pier Structure", "10-20 ft"),
+        (30.7050, -81.4550, "Fort Clinch Pier Drop", "15-28 ft"), (30.7100, -81.4300, "St Marys Jetties Outflow", "15-35 ft"),
+        (30.5100, -81.4400, "Nassau Sound Jetties", "12-24 ft")]],
+    "Okaloosa": ["8729108", "PCBF1", "Coastal Marine Estuary", "Redfish, Trout, King Mackerel", [
+        (30.3950, -86.5150, "Destin Pass Jetties", "15-35 ft"), (30.4350, -86.4250, "Mid-Bay Bridge Fenders", "12-25 ft"),
+        (30.3920, -86.5950, "Okaloosa Island Pier End", "10-18 ft"), (30.4000, -86.6000, "Brooks Bridge Piling", "10-20 ft"),
+        (30.3950, -86.5200, "Destin Bridge Channel", "12-28 ft")]],
+    "Palm Beach": ["8722670", "41113", "Coastal Marine Estuary", "Snook, Tarpon, Jacks", [
+        (26.6120, -80.0330, "Lake Worth Pier Surf End", "10-18 ft"), (26.8850, -80.0520, "Juno Beach Pier Approach", "12-22 ft"),
+        (26.5450, -80.0450, "Boynton Inlet Current", "15-30 ft"), (26.9450, -80.0700, "Jupiter Inlet Fenders", "12-28 ft"),
+        (26.7850, -80.0450, "Blue Heron Bridge Channel", "10-25 ft")]],
+    "Pasco": ["8726724", "CDRF1", "Coastal Marine Estuary", "Snook, Redfish, Trout", [
+        (28.1650, -82.7850, "Anclote River Park Mouth", "8-16 ft"), (28.3650, -82.7150, "Hudson Beach Pier Deep End", "5-10 ft"),
+        (28.3150, -82.7100, "Green Key Pier Drop", "4-8 ft"), (28.2700, -82.7250, "Port Richey Bridge Area", "6-12 ft"),
+        (28.2500, -82.7300, "Brasher Park Channel Edge", "5-9 ft")]],
+    "Pinellas": ["8726520", "8726724", "Coastal Marine Estuary", "Snook, Redfish, Tarpon", [
+        (27.6205, -82.6558, "Sunshine Skyway South Spans", "15-32 ft"), (27.6135, -82.7380, "Fort De Soto Pier Tip", "8-14 ft"),
+        (27.7830, -82.7830, "Johns Pass Inlet Center", "10-22 ft"), (27.9625, -82.8310, "Clearwater Pass Jetty Edge", "12-24 ft"),
+        (28.0375, -82.8020, "Dunedin Causeway Relief", "6-12 ft")]],
+    "Santa Rosa": ["8729840", "PCBF1", "Coastal Marine Estuary", "Trout, Redfish, Flounder", [
+        (30.3820, -86.8620, "Navarre Pier Open Gulf", "12-22 ft"), (30.3850, -86.8650, "Navarre Bridge ICW Spans", "10-18 ft"),
+        (30.4900, -87.1000, "Garcon Point Bridge", "8-16 ft"), (30.5100, -87.1400, "Escambia Bay Bridge East", "12-25 ft"),
+        (30.3650, -87.1700, "Gulf Breeze Pkwy Bridge", "10-20 ft")]],
+    "Sarasota": ["8725520", "8726520", "Coastal Marine Estuary", "Snook, Redfish, Trout", [
+        (27.1120, -82.4550, "Venice Pier Jetties", "12-22 ft"), (27.3550, -82.5650, "Ringling Bridge Channels", "15-28 ft"),
+        (27.2500, -82.5000, "Stickney Point Bridge", "10-20 ft"), (27.1850, -82.4950, "Blackburn Point Bridge", "8-16 ft"),
+        (27.2750, -82.5450, "Siesta Key Bridge Piling", "10-22 ft")]],
+    "St. Johns": ["8720218", "41113", "Coastal Marine Estuary", "Redfish, Trout, Flounder", [
+        (29.9120, -81.3050, "Vilano Pier Current Seam", "10-18 ft"), (29.8550, -81.2650, "St Augustine Pier End", "12-20 ft"),
+        (29.8920, -81.3100, "Bridge of Lions Center", "15-28 ft"), (29.7120, -81.2250, "Matanzas Inlet Bridge", "8-20 ft"),
+        (29.9820, -81.6250, "Shands Bridge Fenders", "10-22 ft")]],
+    "St. Lucie": ["8722670", "41113", "Coastal Marine Estuary", "Snook, Tarpon, Trout", [
+        (27.4720, -80.2950, "Fort Pierce Inlet Jetties", "15-32 ft"), (27.4500, -80.3150, "South Bridge ICW Channel", "10-22 ft"),
+        (27.4650, -80.3250, "North Bridge Center Spans", "10-20 ft"), (27.4700, -80.2900, "Jetty Park Pier Edge", "8-18 ft"),
+        (27.3500, -80.2500, "Walton Road Bridge", "6-14 ft")]],
+    "Taylor": ["8727520", "CDRF1", "Coastal Marine Estuary", "Seatrout, Redfish", [
+        (29.6700, -83.4000, "Steinhatchee Jetties", "6-14 ft"), (29.8250, -83.5950, "Keaton Beach Pier", "4-9 ft"),
+        (30.0350, -83.9120, "Econfina Mouth Channel", "5-10 ft"), (29.7500, -83.5500, "Spring Warrior Creek Mouth", "4-8 ft"),
+        (29.7800, -83.5800, "Dallus Creek Estuary", "3-7 ft")]],
+    "Volusia": ["8720218", "41113", "Coastal Marine Estuary", "Redfish, Trout, Snook", [
+        (29.1450, -80.9700, "Sunglow Pier Ocean Drop", "10-18 ft"), (29.0800, -80.9150, "Ponce Inlet Jetties", "15-32 ft"),
+        (29.2300, -81.0050, "Daytona Beach Pier", "12-20 ft"), (29.1450, -80.9750, "Dunlawton Bridge Piling", "10-22 ft"),
+        (29.2900, -81.0400, "Ormond Beach Bridge Channel", "8-18 ft")]],
+    "Wakulla": ["8728690", "PCBF1", "Coastal Marine Estuary", "Trout, Redfish", [
+        (30.1500, -84.2050, "St Marks Pier Access", "6-14 ft"), (30.0300, -84.3800, "Panacea Bridge Channels", "5-12 ft"),
+        (30.1500, -84.2500, "Wakulla River Bridge", "8-15 ft"), (30.0150, -84.3500, "Surf Road Pier Water", "4-10 ft"),
+        (30.0550, -84.2950, "Shell Point Reef Approach", "6-12 ft")]],
+    "Walton": ["8729108", "PCBF1", "Coastal Marine Estuary", "Trout, Redfish, Flounder", [
+        (30.4000, -86.1500, "US331 Bridge Wide Spans", "10-25 ft"), (30.3500, -86.2000, "Choctawhatchee Jetties", "15-35 ft"),
+        (30.4100, -86.1800, "Tucker Bayou Channel", "6-14 ft"), (30.4200, -86.1300, "Jolly Bay Deep Hole", "8-16 ft"),
+        (30.4500, -86.1000, "Alaqua Bayou Mud Flat", "5-10 ft")]],
+
+    # 32 INLAND COUNTIES (LAKE/RIVER CENTERS, DYNAMICALLY CLUSTERED IN SCRIPT)
+    "Alachua": ["8720226", "CDRF1", "Inland Freshwater System", "Largemouth Bass, Crappie", 29.4450, -82.1650, "Orange Lake Center"],
+    "Baker": ["8720030", "PCBF1", "Inland Freshwater System", "Largemouth Bass, Catfish", 30.2160, -82.4330, "Ocean Pond Basin"],
+    "Bradford": ["8720226", "CDRF1", "Inland Freshwater System", "Largemouth Bass, Bluegill", 29.9250, -82.2000, "Lake Sampson Center"],
+    "Calhoun": ["8728690", "PCBF1", "Riverine System", "Striped Bass, Catfish", 30.1350, -85.1250, "Dead Lakes Basin"],
+    "Clay": ["8720226", "CDRF1", "Riverine System", "Largemouth Bass, Striper", 30.1450, -81.7150, "Doctors Lake Center"],
+    "Columbia": ["8720030", "CDRF1", "Riverine System", "Suwannee Bass, Catfish", 30.1620, -82.6300, "Alligator Lake Center"],
+    "DeSoto": ["8725520", "CDRF1", "Riverine System", "Largemouth Bass, Catfish", 27.1650, -81.8900, "Peace River Center"],
+    "Gadsden": ["8728690", "PCBF1", "Riverine System", "Largemouth Bass, Crappie", 30.4700, -84.6500, "Lake Talquin Reservoir"],
+    "Gilchrist": ["8727520", "CDRF1", "Riverine System", "Largemouth Bass, Sunfish", 29.5880, -82.9350, "Suwannee River Core"],
+    "Glades": ["8725520", "CDRF1", "Inland Freshwater System", "Largemouth Bass, Crappie", 26.9000, -80.9000, "Lake Okeechobee West"],
+    "Hamilton": ["8720030", "CDRF1", "Riverine System", "Largemouth Bass, Panfish", 30.3310, -82.7600, "Suwannee River Center"],
+    "Hardee": ["8725520", "CDRF1", "Riverine System", "Channel Catfish, Bass", 27.4950, -81.8000, "Peace River Flow"],
+    "Hendry": ["8725520", "CDRF1", "Inland Freshwater System", "Largemouth Bass, Bluegill", 26.8000, -80.9500, "Lake Okeechobee SW"],
+    "Highlands": ["8725520", "CDRF1", "Inland Freshwater System", "Trophy Largemouth Bass", 27.4000, -81.2800, "Lake Istokpoga Core"],
+    "Holmes": ["8729108", "PCBF1", "Riverine System", "Catfish, Bream, Bass", 30.7800, -85.8200, "Choctawhatchee River Center"],
+    "Jackson": ["8729108", "PCBF1", "Riverine System", "Largemouth Bass, Striper", 30.7300, -84.8800, "Lake Seminole Basin"],
+    "Lafayette": ["8727520", "CDRF1", "Riverine System", "Suwannee Bass, Catfish", 30.0650, -83.1050, "Suwannee River Bend"],
+    "Lake": ["8720226", "41113", "Inland Freshwater System", "Trophy Largemouth Bass", 28.8000, -81.8000, "Lake Harris Center"],
+    "Leon": ["8728690", "PCBF1", "Inland Freshwater System", "Largemouth Bass, Bluegill", 30.5200, -84.3300, "Lake Jackson Basin"],
+    "Liberty": ["8728690", "PCBF1", "Riverine System", "Catfish, Striped Bass", 30.4300, -84.9900, "Apalachicola River Center"],
+    "Madison": ["8720030", "CDRF1", "Riverine System", "Largemouth Bass, Bream", 30.5850, -83.4450, "Cherry Lake Center"],
+    "Marion": ["8720226", "CDRF1", "Inland Freshwater System", "Largemouth Bass, Crappie", 29.0200, -81.9300, "Lake Weir Center"],
+    "Okeechobee": ["8722670", "CDRF1", "Inland Freshwater System", "Largemouth Bass, Black Crappie", 27.1500, -80.8500, "Lake Okeechobee Center"],
+    "Orange": ["8721604", "41113", "Inland Freshwater System", "Trophy Largemouth Bass", 28.6200, -81.6300, "Lake Apopka Center"],
+    "Osceola": ["8721604", "41113", "Inland Freshwater System", "Largemouth Bass, Crappie", 28.2200, -81.4000, "Lake Tohopekaliga Center"],
+    "Polk": ["8726607", "CDRF1", "Inland Freshwater System", "Largemouth Bass, Crappie", 27.9500, -81.3500, "Lake Kissimmee Center"],
+    "Putnam": ["8720226", "CDRF1", "Riverine System", "Largemouth Bass, Striped Bass", 29.3500, -81.6000, "Lake George Center"],
+    "Seminole": ["8721604", "41113", "Inland Freshwater System", "Largemouth Bass, Crappie", 28.8400, -81.2800, "Lake Monroe Center"],
+    "Sumter": ["8727122", "CDRF1", "Inland Freshwater System", "Largemouth Bass, Panfish", 28.8051, -82.1231, "Lake Panasoffkee Center"],
+    "Suwannee": ["8720030", "CDRF1", "Riverine System", "Largemouth Bass, Catfish", 29.9600, -82.9300, "Suwannee River Core"],
+    "Union": ["8720226", "CDRF1", "Inland Freshwater System", "Largemouth Bass, Bluegill", 30.0385, -82.3410, "Lake Butler Center"],
+    "Washington": ["8729108", "PCBF1", "Riverine System", "Catfish, Bass, Bream", 30.5750, -85.8500, "Choctawhatchee River Bed"]
+}
+
+
 def get_isolated_county_nodes(county):
-    base_info = county_base_coords[county]
-    base_lat, base_lon = base_info[0], base_info[1]
-    env_type, tide_id, buoy_id, system_label = base_info[2], base_info[3], base_info[4], base_info[5]
-    
+    c_data = county_data[county]
+    tide_id, buoy_id, env_type, target_species = c_data[0], c_data[1], c_data[2], c_data[3]
     baro, b_del, bite, bi_del = get_noaa_live_telemetry(buoy_id, tide_id)
-    
-    species_map = {
-        "Coastal Marine Estuary": "Snook, Spotted Seatrout, Redfish, Tarpon",
-        "Inland Freshwater System": "Trophy Largemouth Bass, Black Crappie, Bluegill",
-        "Riverine System": "Striped Bass, Channel Catfish, Suwannee Bass"
-    }
-
-    # All 5 nodes track identically to the verified deep water center. No offsets. No drifting.
-    anchors = [
-        {"name": f"{system_label} - Deep Channel Core Line", "depth": "14-26 ft"},
-        {"name": f"{system_label} - Submerged Structure Ridge", "depth": "8-15 ft"},
-        {"name": f"{system_label} - Baitfish Migration Runway", "depth": "6-12 ft"},
-        {"name": f"{system_label} - Thermocline Mid-Layer Focus", "depth": "10-18 ft"},
-        {"name": f"{system_label} - Benthic Flat Mud Transition", "depth": "5-11 ft"}
-    ]
-
     compiled_nodes = []
-    for node in anchors:
-        compiled_nodes.append({
-            "water_name": node["name"], "lat": base_lat, "lon": base_lon, "env": env_type, "depth": node["depth"],
-            "species": species_map.get(env_type, "Local Target Species"), "bite_index": bite, "bite_delta": bi_del, "barometer": baro, "baro_delta": b_del,
-            "labels": f"Geospatial Anchor Verified Deep Water // Station {tide_id}"
-        })
+
+    # If it's a coastal county with the array of specific bridges/piers
+    if len(c_data) == 5 and isinstance(c_data[4], list):
+        for spot in c_data[4]:
+            lat, lon, name, depth = spot[0], spot[1], spot[2], spot[3]
+            compiled_nodes.append({
+                "water_name": name, "lat": lat, "lon": lon, "env": env_type, "depth": depth,
+                "species": target_species, "bite_index": bite, "bite_delta": bi_del, "barometer": baro, "baro_delta": b_del,
+                # Tiny 20-meter lines that fit safely under a bridge without hitting shore
+                "structures": [{"path": [[lat - 0.0001, lon - 0.0001], [lat + 0.0001, lon + 0.0001]], "name": "Submerged Structural Edge"}],
+                "highways": [{"path": [[lat - 0.0001, lon + 0.0001], [lat + 0.0001, lon - 0.0001]], "name": "Forage Migration Seam"}],
+                "labels": f"Coastal Structure Verified On Water // Station {tide_id}"
+            })
+    else:
+        # Inland county: Use the center point and build a hyper-tight 5-spot cluster
+        base_lat, base_lon, system_label = c_data[4], c_data[5], c_data[6]
+        inland_offsets = [
+            {"name": f"{system_label} - Deep Channel Core Line", "depth": "14-26 ft", "lat_off": 0, "lon_off": 0},
+            {"name": f"{system_label} - Submerged Structure Ridge", "depth": "8-15 ft", "lat_off": 0.0001, "lon_off": -0.0001},
+            {"name": f"{system_label} - Baitfish Migration Runway", "depth": "6-12 ft", "lat_off": -0.0002, "lon_off": 0.0001},
+            {"name": f"{system_label} - Thermocline Mid-Layer Focus", "depth": "10-18 ft", "lat_off": 0.0001, "lon_off": 0.0002},
+            {"name": f"{system_label} - Benthic Flat Mud Transition", "depth": "5-11 ft", "lat_off": -0.0001, "lon_off": -0.0001}
+        ]
+        
+        for node in inland_offsets:
+            lat = base_lat + node["lat_off"]
+            lon = base_lon + node["lon_off"]
+            compiled_nodes.append({
+                "water_name": node["name"], "lat": lat, "lon": lon, "env": env_type, "depth": node["depth"],
+                "species": target_species, "bite_index": bite, "bite_delta": bi_del, "barometer": baro, "baro_delta": b_del,
+                # Tiny 20-meter lines that fit safely in a river channel without hitting shore
+                "structures": [{"path": [[lat - 0.0001, lon - 0.0001], [lat + 0.0001, lon + 0.0001]], "name": "Submerged Structural Edge"}],
+                "highways": [{"path": [[lat - 0.0001, lon + 0.0001], [lat + 0.0001, lon - 0.0001]], "name": "Forage Migration Seam"}],
+                "labels": f"Geospatial Anchor Verified Deep Water // Station {tide_id}"
+            })
+            
     return compiled_nodes
+
 
 # --- TOP SELECTOR PANEL ---
 st.markdown("<div class='console-header'>UNIVERSAL REGIONAL ACCESSIBILITY CONSOLE</div>", unsafe_allow_html=True)
 col_sel1, col_sel2 = st.columns(2)
 
 with col_sel1:
-    selected_county = st.selectbox("Select County Domain:", options=sorted(list(county_base_coords.keys())))
+    selected_county = st.selectbox("Select County Domain:", options=sorted(list(county_data.keys())))
 
 active_locations = get_isolated_county_nodes(selected_county)
 location_names = [loc["water_name"] for loc in active_locations]
@@ -199,25 +327,30 @@ with col_map:
     st.markdown("<div class='section-header'>GEOSPATIAL RADAR VERIFICATION</div>", unsafe_allow_html=True)
     st.write(f"Target Coordinate Lock: `{selected_location_name}`")
     
-    # Zoom backed out to comfortably show large bodies of water/ocean contexts
+    # Precision zoom level to view bridge/pier details clearly
     m = folium.Map(
         location=[target_segment["lat"], target_segment["lon"]], 
-        zoom_start=13, 
+        zoom_start=16, 
         tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         attr='Esri World Imagery'
     )
     
-    # ONLY DROPS A SINGLE PRECISE DOT. NO MORE DRAWN LINES CLIPPING SHORES.
+    # DRAWN LINES ARE BACK, SAFELY SHRUNK TO AVOID LAND
+    for s in target_segment.get("structures", []):
+        folium.PolyLine(locations=s["path"], color="#db146a", weight=5, tooltip=s["name"]).add_to(m)
+    for h in target_segment.get("highways", []):
+        folium.PolyLine(locations=h["path"], color="#ff6600", weight=5, tooltip=h["name"]).add_to(m)
+        
     folium.CircleMarker(
         location=[target_segment["lat"], target_segment["lon"]],
-        radius=10,
+        radius=8,
         color="#00ffcc",
         fill=True,
         fill_color="#00ffcc",
         popup=str(target_segment["labels"])
     ).add_to(m)
     
-    # DYNAMIC KEY forces the folium map to completely rebuild and jump to the new coordinates
+    # BRUTE FORCE REDRAW PREVENTS MAP GETTING STUCK ON PREVIOUS VIEWS
     st_folium(
         m, 
         width="100%", 

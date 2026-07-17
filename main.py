@@ -53,7 +53,7 @@ if not is_paid_user:
     st.stop()
 
 
-# --- NOAA DATA FETCHING (UPGRADED TIMEOUT & CACHE TO STOP DROPOUTS) ---
+# --- NOAA DATA FETCHING ---
 @st.cache_data(ttl=300)
 def get_noaa_live_telemetry(buoy_id, tide_station):
     barometer, baro_delta, bite_index, bite_delta = 29.92, "+0.01", 75, "STABLE"
@@ -80,10 +80,7 @@ def get_noaa_live_telemetry(buoy_id, tide_station):
 
 
 # --- MASTER COUNTY DICTIONARY: COASTAL (35) & INLAND (32) ---
-# Format: "County": ["TideID", "BuoyID", "EnvType", "Species", [ (lat, lon, "Name", "Depth"), ... ]]
-
 county_data = {
-    # 35 COASTAL COUNTIES (5 PRECISION BRIDGE/PIER/INLET SPOTS EACH)
     "Bay": ["8729108", "PCBF1", "Coastal Marine Estuary", "Snook, Redfish, Tarpon", [
         (30.1830, -85.7180, "Hathaway Bridge Channels", "12-25 ft"), (30.1260, -85.7340, "St Andrews Jetties", "15-32 ft"), 
         (30.2130, -85.8810, "Russell-Fields Pier", "10-18 ft"), (30.0810, -85.5900, "Tyndall Bridge Spans", "10-20 ft"), 
@@ -225,7 +222,6 @@ county_data = {
         (30.4100, -86.1800, "Tucker Bayou Channel", "6-14 ft"), (30.4200, -86.1300, "Jolly Bay Deep Hole", "8-16 ft"),
         (30.4500, -86.1000, "Alaqua Bayou Mud Flat", "5-10 ft")]],
 
-    # 32 INLAND COUNTIES (LAKE/RIVER CENTERS, DYNAMICALLY CLUSTERED IN SCRIPT)
     "Alachua": ["8720226", "CDRF1", "Inland Freshwater System", "Largemouth Bass, Crappie", 29.4450, -82.1650, "Orange Lake Center"],
     "Baker": ["8720030", "PCBF1", "Inland Freshwater System", "Largemouth Bass, Catfish", 30.2160, -82.4330, "Ocean Pond Basin"],
     "Bradford": ["8720226", "CDRF1", "Inland Freshwater System", "Largemouth Bass, Bluegill", 29.9250, -82.2000, "Lake Sampson Center"],
@@ -261,26 +257,42 @@ county_data = {
 }
 
 
+# --- DYNAMIC LINE SCALING ENGINE ---
+def determine_line_scale(name, env_type):
+    n = name.lower()
+    if "river" in n or "creek" in n or "estuary" in n or "flow" in n:
+        return 0.00015  # Very short: keeps lines inside narrow rivers
+    elif "pier" in n:
+        return 0.00020  # Short: focuses strictly off the end of the pier
+    elif "bridge" in n or "causeway" in n or "trestle" in n:
+        return 0.00150  # Long: sweeps massively across bridge spans
+    elif "inlet" in n or "pass" in n or "jetties" in n:
+        return 0.00100  # Medium-Long: tracks tidal movement through an inlet
+    elif env_type == "Riverine System":
+        return 0.00020  # Tight default for inland river basins
+    elif env_type == "Inland Freshwater System":
+        return 0.00080  # Medium-Wide for broad lake centers
+    else:
+        return 0.00100  # Default wide setup for open oceans and bays
+
 def get_isolated_county_nodes(county):
     c_data = county_data[county]
     tide_id, buoy_id, env_type, target_species = c_data[0], c_data[1], c_data[2], c_data[3]
     baro, b_del, bite, bi_del = get_noaa_live_telemetry(buoy_id, tide_id)
     compiled_nodes = []
 
-    # If it's a coastal county with the array of specific bridges/piers
     if len(c_data) == 5 and isinstance(c_data[4], list):
         for spot in c_data[4]:
             lat, lon, name, depth = spot[0], spot[1], spot[2], spot[3]
+            scale = determine_line_scale(name, env_type)
             compiled_nodes.append({
                 "water_name": name, "lat": lat, "lon": lon, "env": env_type, "depth": depth,
                 "species": target_species, "bite_index": bite, "bite_delta": bi_del, "barometer": baro, "baro_delta": b_del,
-                # Tiny 20-meter lines that fit safely under a bridge without hitting shore
-                "structures": [{"path": [[lat - 0.0001, lon - 0.0001], [lat + 0.0001, lon + 0.0001]], "name": "Submerged Structural Edge"}],
-                "highways": [{"path": [[lat - 0.0001, lon + 0.0001], [lat + 0.0001, lon - 0.0001]], "name": "Forage Migration Seam"}],
+                "structures": [{"path": [[lat - scale, lon - scale], [lat + scale, lon + scale]], "name": "Submerged Structural Edge"}],
+                "highways": [{"path": [[lat - scale, lon + scale], [lat + scale, lon - scale]], "name": "Forage Migration Seam"}],
                 "labels": f"Coastal Structure Verified On Water // Station {tide_id}"
             })
     else:
-        # Inland county: Use the center point and build a hyper-tight 5-spot cluster
         base_lat, base_lon, system_label = c_data[4], c_data[5], c_data[6]
         inland_offsets = [
             {"name": f"{system_label} - Deep Channel Core Line", "depth": "14-26 ft", "lat_off": 0, "lon_off": 0},
@@ -293,12 +305,12 @@ def get_isolated_county_nodes(county):
         for node in inland_offsets:
             lat = base_lat + node["lat_off"]
             lon = base_lon + node["lon_off"]
+            scale = determine_line_scale(node["name"], env_type)
             compiled_nodes.append({
                 "water_name": node["name"], "lat": lat, "lon": lon, "env": env_type, "depth": node["depth"],
                 "species": target_species, "bite_index": bite, "bite_delta": bi_del, "barometer": baro, "baro_delta": b_del,
-                # Tiny 20-meter lines that fit safely in a river channel without hitting shore
-                "structures": [{"path": [[lat - 0.0001, lon - 0.0001], [lat + 0.0001, lon + 0.0001]], "name": "Submerged Structural Edge"}],
-                "highways": [{"path": [[lat - 0.0001, lon + 0.0001], [lat + 0.0001, lon - 0.0001]], "name": "Forage Migration Seam"}],
+                "structures": [{"path": [[lat - scale, lon - scale], [lat + scale, lon + scale]], "name": "Submerged Structural Edge"}],
+                "highways": [{"path": [[lat - scale, lon + scale], [lat + scale, lon - scale]], "name": "Forage Migration Seam"}],
                 "labels": f"Geospatial Anchor Verified Deep Water // Station {tide_id}"
             })
             
@@ -327,15 +339,13 @@ with col_map:
     st.markdown("<div class='section-header'>GEOSPATIAL RADAR VERIFICATION</div>", unsafe_allow_html=True)
     st.write(f"Target Coordinate Lock: `{selected_location_name}`")
     
-    # Precision zoom level to view bridge/pier details clearly
     m = folium.Map(
         location=[target_segment["lat"], target_segment["lon"]], 
-        zoom_start=16, 
+        zoom_start=15, 
         tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         attr='Esri World Imagery'
     )
     
-    # DRAWN LINES ARE BACK, SAFELY SHRUNK TO AVOID LAND
     for s in target_segment.get("structures", []):
         folium.PolyLine(locations=s["path"], color="#db146a", weight=5, tooltip=s["name"]).add_to(m)
     for h in target_segment.get("highways", []):
@@ -350,7 +360,6 @@ with col_map:
         popup=str(target_segment["labels"])
     ).add_to(m)
     
-    # BRUTE FORCE REDRAW PREVENTS MAP GETTING STUCK ON PREVIOUS VIEWS
     st_folium(
         m, 
         width="100%", 

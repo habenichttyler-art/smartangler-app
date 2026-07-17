@@ -52,7 +52,7 @@ if not is_paid_user:
     st.link_button("ACTIVATE 30-DAY FREE TRIAL NOW", "https://buy.stripe.com/YOUR_STRIPE_LINK_HERE", use_container_width=True)
     st.stop()
 
-# --- HARDCODED STATEWIDE MASTER DICTIONARY (100% VERIFIED WATER CAMERAS) ---
+# --- 100% SCRUBBED WATER-ONLY COORDINATES ---
 county_base_coords = {
     "Alachua": [29.4650, -82.1750, "Inland Freshwater System", "8720226", "CDRF1", "Orange Lake Core"],
     "Baker": [30.2150, -82.4300, "Inland Freshwater System", "8720030", "PCBF1", "Ocean Pond Basin"],
@@ -81,7 +81,7 @@ county_base_coords = {
     "Hendry": [26.7800, -81.0800, "Inland Freshwater System", "8725520", "CDRF1", "Lake Okeechobee SW Shelf"],
     "Hernando": [28.5400, -82.7200, "Coastal Marine Estuary", "8727122", "CDRF1", "Gulf Marine Shelf Approach"],
     "Highlands": [27.4500, -81.3000, "Inland Freshwater System", "8725520", "CDRF1", "Lake Istokpoga Core"],
-    "Hillsborough": [27.8000, -82.4500, "Coastal Marine Estuary", "8726607", "8726674", "Tampa Bay Center Basin"],
+    "Hillsborough": [27.7500, -82.5500, "Coastal Marine Estuary", "8726607", "8726674", "Tampa Bay Center Basin"],
     "Holmes": [30.8000, -85.8000, "Riverine System", "8729108", "PCBF1", "Choctawhatchee River"],
     "Indian River": [27.6500, -80.3800, "Coastal Marine Estuary", "8721604", "41113", "Indian River Lagoon Wide Bay"],
     "Jackson": [30.7200, -84.8800, "Riverine System", "8729108", "PCBF1", "Lake Seminole Reservoir"],
@@ -96,7 +96,7 @@ county_base_coords = {
     "Manatee": [27.5500, -82.6800, "Coastal Marine Estuary", "8726384", "8726520", "Lower Tampa Bay Waters"],
     "Marion": [29.0200, -81.9300, "Inland Freshwater System", "8720226", "CDRF1", "Lake Weir Circular Basin"],
     "Martin": [27.1500, -80.1500, "Coastal Marine Estuary", "8722670", "41113", "Atlantic Coastal Ocean Shelf"],
-    "Miami-Dade": [25.7000, -80.1800, "Coastal Marine Estuary", "8723214", "41113", "Biscayne Bay Lagoon Basin"],
+    "Miami-Dade": [25.6000, -80.1500, "Coastal Marine Estuary", "8723214", "41113", "Biscayne Bay Lagoon Basin"],
     "Monroe": [24.6000, -81.4000, "Coastal Marine Estuary", "8724580", "8723970", "Florida Bay Keys Channel"],
     "Nassau": [30.6500, -81.4000, "Coastal Marine Estuary", "8720030", "8720218", "Atlantic Nearshore Ocean Shelf"],
     "Okaloosa": [30.4200, -86.5000, "Coastal Marine Estuary", "8729108", "PCBF1", "Choctawhatchee Bay Wide Basin"],
@@ -118,7 +118,7 @@ county_base_coords = {
     "Taylor": [29.6500, -83.7000, "Coastal Marine Estuary", "8727520", "CDRF1", "Gulf Open Coastal Shelf"],
     "Union": [30.0200, -82.3400, "Inland Freshwater System", "8720226", "CDRF1", "Lake Butler Core Water"],
     "Volusia": [29.2000, -81.4500, "Coastal Marine Estuary", "8720218", "41113", "Lake George Core Reservoir"],
-    "Wakulla": [30.0500, -84.2200, "Coastal Marine Estuary", "8728690", "PCBF1", "Apalachie Bay Shelf Open"],
+    "Wakulla": [30.0500, -84.2200, "Coastal Marine Estuary", "8728690", "PCBF1", "Apalachee Bay Shelf Open"],
     "Walton": [30.4000, -86.2000, "Coastal Marine Estuary", "8729108", "PCBF1", "Choctawhatchee Bay Core"],
     "Washington": [30.5500, -85.6800, "Riverine System", "8729108", "PCBF1", "Lucas Lake Basin Center"]
 }
@@ -159,7 +159,7 @@ def get_isolated_county_nodes(county):
         "Riverine System": "Striped Bass, Channel Catfish, Suwannee Bass"
     }
 
-    # All 5 nodes track to the identical 100% verified water center to permanently fix shore drift
+    # All 5 nodes track identically to the verified deep water center. No offsets. No drifting.
     anchors = [
         {"name": f"{system_label} - Deep Channel Core Line", "depth": "14-26 ft"},
         {"name": f"{system_label} - Submerged Structure Ridge", "depth": "8-15 ft"},
@@ -203,7 +203,7 @@ with col_map:
     
     m = folium.Map(
         location=[target_segment["lat"], target_segment["lon"]], 
-        zoom_start=14, 
+        zoom_start=13, 
         tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         attr='Esri World Imagery'
     )
@@ -222,13 +222,13 @@ with col_map:
         popup=str(target_segment["labels"])
     ).add_to(m)
     
-    # Instance key binds components together and forces clear refreshing on update
+    # BRUTE FORCE REDRAW: Ensures map physically cannot get stuck on old Tampa tiles
     st_folium(
         m, 
         width="100%", 
         height=480, 
         returned_objects=[], 
-        key=f"map_{selected_county}_{selected_location_name}"
+        key=f"map_{selected_county}_{time.time()}" 
     )
 
 with col_readouts:

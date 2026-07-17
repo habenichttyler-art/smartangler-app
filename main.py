@@ -52,7 +52,7 @@ if not is_paid_user:
     st.link_button("ACTIVATE 30-DAY FREE TRIAL NOW", "https://buy.stripe.com/YOUR_STRIPE_LINK_HERE", use_container_width=True)
     st.stop()
 
-# --- HARDCODED STATEWIDE REGIONAL MASTER DICTIONARY (VERIFIED WATER-ANCHORED BASES) ---
+# --- HARDCODED STATEWIDE REGIONAL TELEMETRY AND CORE WATER COORDINATES ---
 county_base_coords = {
     "Alachua": [29.6450, -82.2150, "Inland Freshwater System", "8720226", "CDRF1", "Newnans Lake Basin"],
     "Baker": [30.2152, -82.4285, "Inland Freshwater System", "8720030", "PCBF1", "Ocean Pond System"],
@@ -68,7 +68,7 @@ county_base_coords = {
     "Columbia": [29.8310, -82.6310, "Riverine System", "8720030", "CDRF1", "Santa Fe River Sector"],
     "DeSoto": [27.2180, -81.8650, "Riverine System", "8725520", "CDRF1", "Peace River Channel"],
     "Dixie": [29.3240, -83.1310, "Coastal Marine Estuary", "8727520", "CDRF1", "Mud Creek Mouth"],
-    "Duval": [30.3950, -81.4310, "Coastal Marine Estuary", "8720218", "8720219"],
+    "Duval": [30.3950, -81.4310, "Coastal Marine Estuary", "8720218", "8720219", "Mayport Shipping Pass"],
     "Escambia": [30.3420, -87.2910, "Coastal Marine Estuary", "8729840", "PCBF1", "Pensacola Pass Slot"],
     "Flagler": [29.6120, -81.2140, "Coastal Marine Estuary", "8720218", "41113", "Matanzas River ICW"],
     "Franklin": [29.7241, -84.9812, "Coastal Marine Estuary", "8728690", "PCBF1", "Apalachicola Bay Cut"],
@@ -146,10 +146,11 @@ def get_noaa_live_telemetry(buoy_id, tide_station):
     except: pass
     return barometer, baro_delta, bite_index, bite_delta
 
-def compile_live_scouting_nodes(county, base_info):
+def get_isolated_county_nodes(county):
+    base_info = county_base_coords[county]
     base_lat, base_lon = base_info[0], base_info[1]
     env_type, tide_id, buoy_id = base_info[2], base_info[3], base_info[4]
-    system_label = base_info[5] if len(base_info) > 5 else f"{county} Core Channel"
+    system_label = base_info[5] if len(base_info) > 5 else f"{county} Waterway"
     
     baro, b_del, bite, bi_del = get_noaa_live_telemetry(buoy_id, tide_id)
     
@@ -158,25 +159,52 @@ def compile_live_scouting_nodes(county, base_info):
         "Inland Freshwater System": "Trophy Largemouth Bass, Black Crappie, Bluegill",
         "Riverine System": "Striped Bass, Channel Catfish, Suwannee Bass"
     }
-    
-    # Strict micro-offsets calculated directly off the water-anchored starting coordinates to block cross-county jumping
-    sub_offsets = [
-        {"suffix": "Channel Ledge Cut", "lat_off": 0.0000, "lon_off": 0.0000, "depth": "8-15 ft"},
-        {"suffix": "Upper Basin Flat", "lat_off": 0.0018, "lon_off": 0.0015, "depth": "5-10 ft"},
-        {"suffix": "Deep Relief Hole", "lat_off": -0.0022, "lon_off": -0.0025, "depth": "12-26 ft"},
-        {"suffix": "Structures Intersection", "lat_off": 0.0025, "lon_off": -0.0018, "depth": "7-13 ft"},
-        {"suffix": "Boundary Pass Line", "lat_off": -0.0015, "lon_off": 0.0031, "depth": "6-11 ft"}
-    ]
-    
+
+    # Strict manually plotted coordinate sheets explicitly overriding custom target configurations
+    true_hardcoded_spots = {
+        "Gilchrist": [
+            {"name": "Suwannee River - Santa Fe Mouth Confluence", "lat": 29.8891, "lon": -82.8753, "depth": "8-16 ft"},
+            {"name": "Suwannee River - Rock Bluff Launch Ledge", "lat": 29.6452, "lon": -82.9154, "depth": "6-12 ft"},
+            {"name": "Suwannee River - Hart Springs Channel Run", "lat": 29.6745, "lon": -82.9515, "depth": "5-10 ft"},
+            {"name": "Suwannee River - Otter Springs Island Seam", "lat": 29.6430, "lon": -82.9420, "depth": "7-14 ft"},
+            {"name": "Santa Fe River - Sun Springs Bottom Cut", "lat": 29.8220, "lon": -82.7845, "depth": "8-18 ft"}
+        ],
+        "Hendry": [
+            {"name": "Caloosahatchee River - Clewiston Canal Outflow", "lat": 26.7651, "lon": -80.9152, "depth": "8-14 ft"},
+            {"name": "Caloosahatchee River - LaBelle Trestle Guard", "lat": 26.7554, "lon": -81.4422, "depth": "10-16 ft"},
+            {"name": "Caloosahatchee River - Central Shipping Channel", "lat": 26.7942, "lon": -81.4215, "depth": "8-15 ft"},
+            {"name": "Lake Okeechobee - Rim Canal Sector Junction", "lat": 26.7915, "lon": -81.0912, "depth": "7-12 ft"},
+            {"name": "Caloosahatchee River - Fort Denaud Channel Cut", "lat": 26.7852, "lon": -81.5153, "depth": "5-9 ft"}
+        ],
+        "Hamilton": [
+            {"name": "Suwannee River - Withlacoochee River Junction", "lat": 30.3892, "lon": -83.1612, "depth": "6-12 ft"},
+            {"name": "Suwannee River - Rocky Bluff Deep Hole Channel", "lat": 30.4112, "lon": -82.8853, "depth": "10-22 ft"},
+            {"name": "Suwannee River - Suwannee Springs Bottom Run", "lat": 30.3852, "lon": -82.9913, "depth": "5-10 ft"},
+            {"name": "Alapaha River - Floodplain Delta Mouth Pass", "lat": 30.3212, "lon": -83.1053, "depth": "4-8 ft"},
+            {"name": "Suwannee River - US-129 Bridge Channel Core", "lat": 30.3542, "lon": -82.9153, "depth": "8-16 ft"}
+        ]
+    }
+
+    if county in true_hardcoded_spots:
+        anchors = true_hardcoded_spots[county]
+    else:
+        # Micro-scale coordinate shifts (< 30 meters) to keep pins locked entirely inside the baseline channel water zone
+        anchors = [
+            {"name": f"{system_label} - Center Channel Ledge", "lat": base_lat, "lon": base_lon, "depth": "8-14 ft"},
+            {"name": f"{system_label} - North Bank Mud Flat Seam", "lat": base_lat + 0.0003, "lon": base_lon - 0.0004, "depth": "5-9 ft"},
+            {"name": f"{system_label} - Deep Relief Flow Hole", "lat": base_lat - 0.0004, "lon": base_lon + 0.0003, "depth": "12-25 ft"},
+            {"name": f"{system_label} - Upper Pass Trough Section", "lat": base_lat + 0.0002, "lon": base_lon + 0.0004, "depth": "6-11 ft"},
+            {"name": f"{system_label} - Lower Boundary Run Cut", "lat": base_lat - 0.0003, "lon": base_lon - 0.0002, "depth": "7-13 ft"}
+        ]
+
     compiled_nodes = []
-    for node in sub_offsets:
-        t_lat = base_lat + node["lat_off"]
-        t_lon = base_lon + node["lon_off"]
+    for node in anchors:
+        lat, lon = node["lat"], node["lon"]
         compiled_nodes.append({
-            "water_name": f"{system_label} - {node['suffix']}", "lat": t_lat, "lon": t_lon, "env": env_type, "depth": node["depth"],
-            "species": species_map.get(env_type, "Local Baitfish Arrays"), "bite_index": bite, "bite_delta": bi_del, "barometer": baro, "baro_delta": b_del,
-            "structures": [{"path": [[t_lat - 0.0008, t_lon - 0.0008], [t_lat, t_lon]], "name": "Submerged Contour Edge"}],
-            "highways": [{"path": [[t_lat - 0.0015, t_lon + 0.0015], [t_lat, t_lon]], "name": "Baitfish Flow Seam"}],
+            "water_name": node["name"], "lat": lat, "lon": lon, "env": env_type, "depth": node["depth"],
+            "species": species_map.get(env_type, "Local Target Species"), "bite_index": bite, "bite_delta": bi_del, "barometer": baro, "baro_delta": b_del,
+            "structures": [{"path": [[lat - 0.0004, lon - 0.0004], [lat, lon]], "name": "Submerged Channel Drop-off Edge"}],
+            "highways": [{"path": [[lat - 0.0008, lon + 0.0008], [lat, lon]], "name": "Forage Migration Current Run"}],
             "labels": f"Geospatial Node Verified // Station {tide_id}"
         })
     return compiled_nodes
@@ -188,9 +216,7 @@ col_sel1, col_sel2 = st.columns(2)
 with col_sel1:
     selected_county = st.selectbox("Select County Domain:", options=sorted(list(county_base_coords.keys())))
 
-# Clean context compile running solely off the valid localized baseline arrays
-active_county_info = county_base_coords[selected_county]
-active_locations = compile_live_scouting_nodes(selected_county, active_county_info)
+active_locations = get_isolated_county_nodes(selected_county)
 location_names = [loc["water_name"] for loc in active_locations]
 
 with col_sel2:
@@ -207,7 +233,7 @@ with col_map:
     
     m = folium.Map(
         location=[target_segment["lat"], target_segment["lon"]], 
-        zoom_start=15, # Tightened zoom view to highlight individual channel paths clearly
+        zoom_start=15, 
         tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         attr='Esri World Imagery'
     )

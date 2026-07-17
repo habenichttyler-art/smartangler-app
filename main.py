@@ -147,73 +147,68 @@ def get_noaa_live_telemetry(buoy_id, tide_station):
     except: pass
     return barometer, baro_delta, bite_index, bite_delta, water_level
 
-def load_verified_geospatial_matrix():
-    matrix = {}
-    for county, info in county_base_coords.items():
-        base_lat, base_lon, env_type, tide_id, buoy_id = info
-        baro, b_del, bite, bi_del, tide = get_noaa_live_telemetry(buoy_id, tide_id)
-        
-        species_map = {
-            "Coastal Marine Estuary": "Snook, Spotted Seatrout, Redfish, Tarpon",
-            "Inland Freshwater System": "Trophy Largemouth Bass, Black Crappie, Bluegill",
-            "Riverine System": "Striped Bass, Channel Catfish, Suwannee Bass"
+def get_single_county_data(county, info):
+    base_lat, base_lon, env_type, tide_id, buoy_id = info
+    baro, b_del, bite, bi_del, tide = get_noaa_live_telemetry(buoy_id, tide_id)
+    
+    species_map = {
+        "Coastal Marine Estuary": "Snook, Spotted Seatrout, Redfish, Tarpon",
+        "Inland Freshwater System": "Trophy Largemouth Bass, Black Crappie, Bluegill",
+        "Riverine System": "Striped Bass, Channel Catfish, Suwannee Bass"
+    }
+    
+    return [
+        {
+            "water_name": f"{county} Center Channel Access", "lat": base_lat, "lon": base_lon, "env": env_type,
+            "depth": f"Live Tide Profile: {tide}" if env_type == "Coastal Marine Estuary" else "6-12 ft Base Depth",
+            "species": species_map[env_type], "bite_index": bite, "bite_delta": bi_del, "barometer": baro, "baro_delta": b_del,
+            "structures": [{"path": [[base_lat - 0.002, base_lon - 0.002], [base_lat, base_lon]], "name": "Primary Ledge Structure"}],
+            "highways": [{"path": [[base_lat - 0.004, base_lon + 0.004], [base_lat, base_lon]], "name": "Bait Migration Route"}],
+            "labels": f"Target Access Active // Station {tide_id}"
+        },
+        {
+            "water_name": f"{county} North Basin Segment", "lat": base_lat + 0.008, "lon": base_lon + 0.008, "env": env_type,
+            "depth": f"Live Tide Profile: {tide}" if env_type == "Coastal Marine Estuary" else "5-9 ft Base Depth",
+            "species": species_map[env_type], "bite_index": min(100, bite + 2), "bite_delta": bi_del, "barometer": baro, "baro_delta": b_del,
+            "structures": [{"path": [[base_lat + 0.006, base_lon + 0.006], [base_lat + 0.008, base_lon + 0.008]], "name": "Secondary Shell Flat"}],
+            "highways": [{"path": [[base_lat + 0.010, base_lon + 0.005], [base_lat + 0.008, base_lon + 0.008]], "name": "Tidal Inflow Line"}],
+            "labels": f"North Vector Active // Station {tide_id}"
+        },
+        {
+            "water_name": f"{county} East Channel Flat", "lat": base_lat - 0.006, "lon": base_lon - 0.009, "env": env_type,
+            "depth": f"Live Tide Profile: {tide}" if env_type == "Coastal Marine Estuary" else "7-14 ft Base Depth",
+            "species": species_map[env_type], "bite_index": max(0, bite - 3), "bite_delta": bi_del, "barometer": baro, "baro_delta": b_del,
+            "structures": [{"path": [[base_lat - 0.008, base_lon - 0.011], [base_lat - 0.006, base_lon - 0.009]], "name": "Deep Drop-off Edge"}],
+            "highways": [{"path": [[base_lat - 0.003, base_lon - 0.007], [base_lat - 0.006, base_lon - 0.009]], "name": "Forage Run"}],
+            "labels": f"East Vector Active // Station {tide_id}"
+        },
+        {
+            "water_name": f"{county} Deep Basin Point", "lat": base_lat + 0.011, "lon": base_lon - 0.007, "env": env_type,
+            "depth": f"Live Tide Profile: {tide}" if env_type == "Coastal Marine Estuary" else "8-16 ft Base Depth",
+            "species": species_map[env_type], "bite_index": min(100, bite + 4), "bite_delta": bi_del, "barometer": baro, "baro_delta": b_del,
+            "structures": [{"path": [[base_lat + 0.009, base_lon - 0.009], [base_lat + 0.011, base_lon - 0.007]], "name": "Submerged Contour Barrier"}],
+            "highways": [{"path": [[base_lat + 0.013, base_lon - 0.005], [base_lat + 0.011, base_lon - 0.007]], "name": "Main Current Highway"}],
+            "labels": f"Deep Basin Active // Station {tide_id}"
+        },
+        {
+            "water_name": f"{county} Boundary Cut Access", "lat": base_lat - 0.009, "lon": base_lon + 0.012, "env": env_type,
+            "depth": f"Live Tide Profile: {tide}" if env_type == "Coastal Marine Estuary" else "4-8 ft Base Depth",
+            "species": species_map[env_type], "bite_index": bite, "bite_delta": bi_del, "barometer": baro, "baro_delta": b_del,
+            "structures": [{"path": [[base_lat - 0.011, base_lon + 0.010], [base_lat - 0.009, base_lon + 0.012]], "name": "Shoal Perimeter"}],
+            "highways": [{"path": [[base_lat - 0.007, base_lon + 0.014], [base_lat - 0.009, base_lon + 0.012]], "name": "Shallow Migration Pass"}],
+            "labels": f"Boundary Vector Active // Station {tide_id}"
         }
-        
-        # Exact real-world coordinate structures bound explicitly to target county domain frame
-        matrix[county] = [
-            {
-                "water_name": f"{county} Center Channel Access", "lat": base_lat, "lon": base_lon, "env": env_type,
-                "depth": f"Live Tide Profile: {tide}" if env_type == "Coastal Marine Estuary" else "6-12 ft Base Depth",
-                "species": species_map[env_type], "bite_index": bite, "bite_delta": bi_del, "barometer": baro, "baro_delta": b_del,
-                "structures": [{"path": [[base_lat - 0.002, base_lon - 0.002], [base_lat, base_lon]], "name": "Primary Ledge Structure"}],
-                "highways": [{"path": [[base_lat - 0.004, base_lon + 0.004], [base_lat, base_lon]], "name": "Bait Migration Route"}],
-                "labels": f"Target Access Active // Station {tide_id}"
-            },
-            {
-                "water_name": f"{county} North Basin Segment", "lat": base_lat + 0.008, "lon": base_lon + 0.008, "env": env_type,
-                "depth": f"Live Tide Profile: {tide}" if env_type == "Coastal Marine Estuary" else "5-9 ft Base Depth",
-                "species": species_map[env_type], "bite_index": min(100, bite + 2), "bite_delta": bi_del, "barometer": baro, "baro_delta": b_del,
-                "structures": [{"path": [[base_lat + 0.006, base_lon + 0.006], [base_lat + 0.008, base_lon + 0.008]], "name": "Secondary Shell Flat"}],
-                "highways": [{"path": [[base_lat + 0.010, base_lon + 0.005], [base_lat + 0.008, base_lon + 0.008]], "name": "Tidal Inflow Line"}],
-                "labels": f"North Vector Active // Station {tide_id}"
-            },
-            {
-                "water_name": f"{county} East Channel Flat", "lat": base_lat - 0.006, "lon": base_lon - 0.009, "env": env_type,
-                "depth": f"Live Tide Profile: {tide}" if env_type == "Coastal Marine Estuary" else "7-14 ft Base Depth",
-                "species": species_map[env_type], "bite_index": max(0, bite - 3), "bite_delta": bi_del, "barometer": baro, "baro_delta": b_del,
-                "structures": [{"path": [[base_lat - 0.008, base_lon - 0.011], [base_lat - 0.006, base_lon - 0.009]], "name": "Deep Drop-off Edge"}],
-                "highways": [{"path": [[base_lat - 0.003, base_lon - 0.007], [base_lat - 0.006, base_lon - 0.009]], "name": "Forage Run"}],
-                "labels": f"East Vector Active // Station {tide_id}"
-            },
-            {
-                "water_name": f"{county} Deep Basin Point", "lat": base_lat + 0.011, "lon": base_lon - 0.007, "env": env_type,
-                "depth": f"Live Tide Profile: {tide}" if env_type == "Coastal Marine Estuary" else "8-16 ft Base Depth",
-                "species": species_map[env_type], "bite_index": min(100, bite + 4), "bite_delta": bi_del, "barometer": baro, "baro_delta": b_del,
-                "structures": [{"path": [[base_lat + 0.009, base_lon - 0.009], [base_lat + 0.011, base_lon - 0.007]], "name": "Submerged Contour Barrier"}],
-                "highways": [{"path": [[base_lat + 0.013, base_lon - 0.005], [base_lat + 0.011, base_lon - 0.007]], "name": "Main Current Highway"}],
-                "labels": f"Deep Basin Active // Station {tide_id}"
-            },
-            {
-                "water_name": f"{county} Boundary Cut Access", "lat": base_lat - 0.009, "lon": base_lon + 0.012, "env": env_type,
-                "depth": f"Live Tide Profile: {tide}" if env_type == "Coastal Marine Estuary" else "4-8 ft Base Depth",
-                "species": species_map[env_type], "bite_index": bite, "bite_delta": bi_del, "barometer": baro, "baro_delta": b_del,
-                "structures": [{"path": [[base_lat - 0.011, base_lon + 0.010], [base_lat - 0.009, base_lon + 0.012]], "name": "Shoal Perimeter"}],
-                "highways": [{"path": [[base_lat - 0.007, base_lon + 0.014], [base_lat - 0.009, base_lon + 0.012]], "name": "Shallow Migration Pass"}],
-                "labels": f"Boundary Vector Active // Station {tide_id}"
-            }
-        ]
-    return matrix
-
-data_matrix = load_verified_geospatial_matrix()
+    ]
 
 # --- TOP SELECTOR PANEL ---
 st.markdown("<div class='console-header'>UNIVERSAL REGIONAL ACCESSIBILITY CONSOLE</div>", unsafe_allow_html=True)
 col_sel1, col_sel2 = st.columns(2)
 
 with col_sel1:
-    selected_county = st.selectbox("Select County Domain:", options=sorted(list(data_matrix.keys())))
+    selected_county = st.selectbox("Select County Domain:", options=sorted(list(county_base_coords.keys())))
 
-active_locations = data_matrix[selected_county]
+# ONLY load data for the single selected county to prevent multi-request network lag
+active_locations = get_single_county_data(selected_county, county_base_coords[selected_county])
 location_names = [loc["water_name"] for loc in active_locations]
 
 with col_sel2:
